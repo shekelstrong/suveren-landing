@@ -8,6 +8,13 @@ import { getAllArticles } from "@/lib/articles";
  */
 export async function GET(req: Request) {
   const token = process.env.CMS_API_TOKEN;
+  // В production токен обязателен. В dev — пропускаем.
+  if (!token && process.env.NODE_ENV === "production") {
+    return NextResponse.json(
+      { error: "API disabled: CMS_API_TOKEN not configured" },
+      { status: 503 },
+    );
+  }
   if (token) {
     const auth = req.headers.get("authorization") || "";
     if (auth !== `Bearer ${token}`) {
