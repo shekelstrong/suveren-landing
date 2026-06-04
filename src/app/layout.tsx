@@ -7,7 +7,7 @@ import { Footer } from "@/components/Footer";
 import { Providers } from "@/components/Providers";
 import { LangHtml } from "@/components/LangHtml";
 import { BreadcrumbsJsonLd } from "@/components/BreadcrumbsJsonLd";
-import { YandexMetrika } from "@/components/YandexMetrika";
+import { YandexMetrika, YandexMetrikaNoScript } from "@/components/YandexMetrika";
 import { GscVerification } from "@/components/GscVerification";
 import { YandexVerification } from "@/components/YandexVerification";
 import "./globals.css";
@@ -182,6 +182,7 @@ export default function RootLayout({
             <Footer />
           </div>
         </Providers>
+        <YandexMetrikaNoScript />
         <Analytics />
         <VercelAnalytics />
       </body>
