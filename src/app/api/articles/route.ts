@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { Octokit } from "@octokit/rest";
 import { slugifyTitle } from "@/lib/articles";
 import { generateCover, extractOrBuildPrompt } from "@/lib/image-gen";
+import { pingIndexNow } from "@/lib/indexnow";
+import { replicateToNemoDocs } from "@/lib/nemo-docs";
 
 /**
  * POST /api/articles
@@ -30,6 +32,10 @@ interface ArticleDraft {
   lang?: "ru" | "en"; // по умолчанию "ru"
   /** Slug перевода на другую локаль (если есть) */
   translations?: { ru?: string; en?: string };
+  /** FAQ-блок: будет отрендерен аккордеоном + JSON-LD FAQPage */
+  faq?: { q: string; a: string }[];
+  /** Bio автора для E-E-A-T (Person JSON-LD) */
+  authorBio?: { name: string; url?: string; description?: string };
 }
 
 function getRepo() {
@@ -128,6 +134,8 @@ export async function POST(req: Request) {
   if (body.cta) frontmatter.cta = body.cta;
   if (body.related) frontmatter.related = body.related;
   if (body.translations) frontmatter.translations = body.translations;
+  if (body.faq) frontmatter.faq = body.faq;
+  if (body.authorBio) frontmatter.authorBio = body.authorBio;
 
   // Serialize as Markdown with frontmatter
   const yaml = Object.entries(frontmatter)
@@ -177,6 +185,38 @@ export async function POST(req: Request) {
         branch: process.env.GITHUB_BRANCH || "main",
       });
 
+      // Side-effects: IndexNow + nemo-team-docs репликация
+      // (не блокирующие ошибки — основное дело сделано)
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://sovereign-semantics.vercel.app";
+      const articleUrl = `${siteUrl}${lang === "en" ? "/en" : ""}/blog/${slug}`;
+
+      let indexNow: { submitted: number; results: any[] } | null = null;
+      if (!body.draft) {
+        try {
+          indexNow = await pingIndexNow([articleUrl]);
+        } catch (e) {
+          console.error("[api/articles] IndexNow error:", e);
+        }
+      }
+
+      let nemoDocs: { ok: boolean; path?: string; error?: string } | null = null;
+      if (!body.draft) {
+        try {
+          nemoDocs = await replicateToNemoDocs({
+            title: body.title,
+            description: body.description,
+            date,
+            tags: body.tags || [],
+            content: body.content,
+            slug,
+            locale: lang as "ru" | "en",
+            author: body.author,
+          });
+        } catch (e) {
+          console.error("[api/articles] nemo-docs error:", e);
+        }
+      }
+
       return NextResponse.json({
         ok: true,
         slug,
@@ -184,6 +224,8 @@ export async function POST(req: Request) {
         url: `/${lang === "en" ? "en/" : ""}blog/${slug}`,
         github: `${process.env.GITHUB_REPO_OWNER}/${process.env.GITHUB_REPO_NAME}/blob/main/${filePath}`,
         cover: coverUrl,
+        indexNow,
+        nemoDocs,
         message: "Article committed to GitHub. Vercel will deploy shortly.",
       });
     } catch (err) {

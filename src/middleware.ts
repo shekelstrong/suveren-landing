@@ -46,6 +46,8 @@ export function middleware(req: NextRequest) {
     pathname === "/sitemap.xml" ||
     pathname.startsWith("/logos/") ||
     pathname.startsWith("/og/") ||
+    // HTML-файлы верификации (Яндекс.Вебмастер: yandex_*.html, GSC: google*.html)
+    /^\/(yandex_|google[a-z0-9_-]*|bing[a-z0-9_-]*)\.html$/i.test(pathname) ||
     // прочие ассеты (css/js/images/fonts) — пропускаем
     /\.[a-z0-9]{1,5}$/i.test(pathname)
   ) {
@@ -95,5 +97,7 @@ export const config = {
   // но НЕ пропускаем .xml/.json (служебные эндпоинты)
   matcher: [
     "/((?!_next/static|_next/image|.*\\.(?:png|jpe?g|gif|webp|avif|svg|ico|woff2?|ttf|eot|css|js|map)$).*)",
+    // HTML-файлы верификации НЕ должны проходить через middleware
+    "/((?!yandex_).*\\.html$)",
   ],
 };

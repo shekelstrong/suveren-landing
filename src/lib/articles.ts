@@ -4,6 +4,10 @@ import matter from "gray-matter";
 import { marked } from "marked";
 import slugify from "slugify";
 import type { Article, ArticleTag, Locale } from "./articles-types";
+import { installWikiLinks, registerWikiAliases } from "./marked-extensions";
+
+// Активируем [[wiki-link]] (Obsidian-стиль)
+installWikiLinks();
 
 export type { Article, ArticleTag, Locale } from "./articles-types";
 export { getTagLabel, getAllTags } from "./articles-types";
@@ -102,6 +106,10 @@ function parseArticleFile(filename: string, locale: Locale): Article | null {
 
     const slug = filename.replace(/\.mdx?$/, "");
     const html = marked.parse(content, { async: false }) as string;
+
+    // Локальная регистрация алиасов wiki-link: текущая статья по своему slug
+    // и связанные статьи становятся автодополняемыми.
+    registerWikiAliases({ [slug.toLowerCase()]: data.title as string });
 
     return {
       slug,

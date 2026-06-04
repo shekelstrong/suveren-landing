@@ -8,6 +8,8 @@ import { Providers } from "@/components/Providers";
 import { LangHtml } from "@/components/LangHtml";
 import { BreadcrumbsJsonLd } from "@/components/BreadcrumbsJsonLd";
 import { YandexMetrika } from "@/components/YandexMetrika";
+import { GscVerification } from "@/components/GscVerification";
+import { YandexVerification } from "@/components/YandexVerification";
 import "./globals.css";
 
 const inter = Inter({
@@ -161,6 +163,10 @@ export default function RootLayout({
       className={`${inter.variable} ${jetbrains.variable}`}
       suppressHydrationWarning
     >
+      <head>
+        <GscVerification />
+        <YandexVerification />
+      </head>
       <body className="antialiased">
         <script
           type="application/ld+json"
