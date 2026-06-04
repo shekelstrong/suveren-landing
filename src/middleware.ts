@@ -5,7 +5,7 @@ type Locale = "ru" | "en";
 
 // Префиксы статических страниц, которые должны быть локализованы
 // (включая вложенные: /blog/<slug>, /feed.xml и т.д.)
-const STATIC_PREFIXES = ["/blog", "/manifesto", "/contact", "/feed.xml"];
+const STATIC_PREFIXES = ["/blog", "/manifesto", "/contact", "/about", "/feed.xml"];
 
 function isLocale(s: string): s is Locale {
   return s === "ru" || s === "en";
