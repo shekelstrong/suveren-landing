@@ -1,0 +1,48 @@
+name: Telegram Cron (post + nav)
+
+on:
+  # Каждые 30 минут — постит новые статьи в @suveren_media
+  schedule:
+    - cron: "*/30 * * * *"
+  # Раз в сутки в 9:00 UTC — обновляет закреп-навигацию в канале
+    - cron: "0 9 * * *"
+  # Ручной запуск для отладки
+  workflow_dispatch:
+    inputs:
+      endpoint:
+        description: "Какой эндпоинт дёрнуть"
+        type: choice
+        required: true
+        default: "post"
+        options:
+          - post
+          - nav
+
+jobs:
+  cron:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger telegram-post (каждые 30 мин)
+        if: github.event.schedule == '*/30 * * * *' || (github.event_name == 'workflow_dispatch' && github.event.inputs.endpoint == 'post')
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          echo "Triggering /api/cron/telegram-post at $(date -u)"
+          RESPONSE=$(curl -sS -X POST "https://sovereign-semantics.vercel.app/api/cron/telegram-post" \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            -H "Content-Type: application/json" \
+            -w "\nHTTP: %{http_code}\n" || true)
+          echo "Result: $RESPONSE"
+
+      - name: Trigger telegram-nav (раз/сут в 9:00 UTC)
+        if: github.event.schedule == '0 9 * * *' || (github.event_name == 'workflow_dispatch' && github.event.inputs.endpoint == 'nav')
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          echo "Triggering /api/cron/telegram-nav at $(date -u)"
+          RESPONSE=$(curl -sS -X POST "https://sovereign-semantics.vercel.app/api/cron/telegram-nav" \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            -H "Content-Type: application/json" \
+            -w "\nHTTP: %{http_code}\n" || true)
+          echo "Result: $RESPONSE"

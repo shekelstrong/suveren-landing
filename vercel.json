@@ -1,14 +1,4 @@
 {
-  "crons": [
-    {
-      "path": "/api/cron/telegram-post",
-      "schedule": "*/30 * * * *"
-    },
-    {
-      "path": "/api/cron/telegram-nav",
-      "schedule": "0 9 * * *"
-    }
-  ],
   "redirects": [
     {
       "source": "/feed.xml",
