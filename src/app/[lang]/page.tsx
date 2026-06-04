@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { ArrowRight, Code2, Brain, Network } from "lucide-react";
 import { getLatestArticles, type Locale } from "@/lib/articles";
 import { ArticleCard } from "@/components/ArticleCard";
@@ -8,6 +9,31 @@ import { HeroGrid } from "@/components/HeroGrid";
 import { getDict, isValidLocale } from "@/lib/dict";
 import { routes } from "@/lib/routes";
 import { notFound } from "next/navigation";
+
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL || "https://sovereign-semantics.ru";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang } = await params;
+  const isEn = lang === "en";
+  const home = isEn ? "/en" : "/";
+  return {
+    alternates: {
+      canonical: isEn ? `${SITE_URL}/en` : `${SITE_URL}/`,
+      languages: {
+        ru: `${SITE_URL}/`,
+        en: `${SITE_URL}/en`,
+      },
+    },
+    openGraph: {
+      url: isEn ? `${SITE_URL}/en` : `${SITE_URL}/`,
+    },
+  };
+}
 
 export async function generateStaticParams() {
   return [{ lang: "ru" }, { lang: "en" }];

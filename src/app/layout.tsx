@@ -62,7 +62,6 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: "/",
     languages: {
       ru: "/",
       en: "/en",
