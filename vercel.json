@@ -1,9 +1,1 @@
-{
-  "redirects": [
-    {
-      "source": "/feed.xml",
-      "destination": "/ru/feed.xml",
-      "statusCode": 307
-    }
-  ]
-}
+{}

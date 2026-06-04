@@ -36,6 +36,38 @@ function stripMarkdown(md: string): string {
     .trim();
 }
 
+/**
+ * Очистить HTML от атрибутов/тегов, которые Дзен не принимает.
+ * Дзен поддерживает только ограниченный набор HTML (p, a, b, i, u, s,
+ * h1-h4, blockquote, ul/ol/li, figure/img/figcaption, video/source).
+ * Все class/style/data-* атрибуты нужно убрать.
+ */
+function cleanHtmlForDzen(html: string): string {
+  return html
+    // Убираем все class, style, id, data-* атрибуты
+    .replace(/\s+(class|style|id|data-[a-z-]+|aria-[a-z-]+|role|target|rel)="[^"]*"/g, "")
+    .replace(/\s+(class|style|id|data-[a-z-]+|aria-[a-z-]+|role|target|rel)='[^']*'/g, "")
+    // Убираем inline scripts и опасные теги
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<iframe[\s\S]*?<\/iframe>/gi, "")
+    .replace(/<form[\s\S]*?<\/form>/gi, "")
+    .replace(/<input[^>]*>/gi, "")
+    .replace(/<button[^>]*>[\s\S]*?<\/button>/gi, "")
+    // Заменяем div / section / article на p (Дзен не поддерживает)
+    .replace(/<\/?(div|section|article|aside|header|footer|nav|main|span)>/gi, "")
+    // Заменяем h5, h6 на h4
+    .replace(/<(\/?)h[56]>/gi, "<$1h4>")
+    .trim();
+}
+
+function absolutizeUrls(html: string, siteUrl: string, basePath: string): string {
+  // Превращаем относительные src="/..." в абсолютные
+  return html
+    .replace(/src="\/([^"]*)"/g, `src="${siteUrl}$1"`)
+    .replace(/href="\/([^"#?]*)"/g, (_m, p) => `href="${siteUrl}${p.startsWith('/') ? '' : '/'}${p}"`);
+}
+
 export interface BuildRssOptions {
   locale: Locale;
   siteUrl: string;
@@ -63,27 +95,45 @@ export function buildRssXml({
   const items = articles
     .map((a) => {
       const url = `${siteUrl}${a.locale === "en" ? "/en" : ""}/blog/${a.slug}`;
+      // pdalink — мобильная версия. У нас адаптивный дизайн, поэтому тот же URL
+      const pdalink = url;
       const description = a.description || stripMarkdown(a.content).slice(0, 280);
-      const category = a.tags[0] || (locale === "en" ? "IT" : "IT");
+      // Дзен требует 4 значения <category>: способ публикации, тип, индексация, комментирование
+      const dzenCategories = [
+        "auto-publish",
+        "format-article",
+        "index",
+        "comment-all",
+      ];
+      const tagCategories = a.tags.map((t) => escapeXml(t));
+      const allCategories = [...dzenCategories, ...tagCategories];
       const coverUrl = a.cover
         ? a.cover.startsWith("http")
           ? a.cover
           : `${siteUrl}${a.cover}`
         : null;
+      // content:encoded — обязателен для Дзена. Берём очищенный HTML.
+      const cleanedHtml = cleanHtmlForDzen(
+        absolutizeUrls(a.html, siteUrl, a.locale === "en" ? "/en" : ""),
+      );
+      const contentEncoded = `<![CDATA[${cleanedHtml}]]>`;
+      const enclosureTag = coverUrl
+        ? `\n      <enclosure url="${coverUrl}" type="image/jpeg" length="0" />`
+        : "";
 
       return `    <item>
       <title>${escapeXml(a.title)}</title>
       <link>${url}</link>
+      <pdalink>${pdalink}</pdalink>
       <guid isPermaLink="true">${url}</guid>
       <pubDate>${new Date(a.date).toUTCString()}</pubDate>
       <author>vasileneopekin@yandex.ru (${escapeXml(a.author || meta.editor)})</author>
-      <dc:creator>${escapeXml(a.author || meta.editor)}</dc:creator>
-      <category>${escapeXml(category)}</category>
-      <description>${escapeXml(description)}</description>${
-        coverUrl
-          ? `\n      <enclosure url="${coverUrl}" type="image/jpeg" />`
-          : ""
-      }
+      <dc:creator>${escapeXml(a.author || meta.editor)}</dc:creator>${allCategories
+        .map((c) => `\n      <category>${c}</category>`)
+        .join("")}${enclosureTag}
+      <description>${escapeXml(description)}</description>
+      <media:rating scheme="urn:simple">nonadult</media:rating>
+      <content:encoded>${contentEncoded}</content:encoded>
     </item>`;
     })
     .join("\n");
@@ -92,7 +142,8 @@ export function buildRssXml({
 <rss version="2.0"
   xmlns:atom="http://www.w3.org/2005/Atom"
   xmlns:dc="http://purl.org/dc/elements/1.1/"
-  xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  xmlns:content="http://purl.org/rss/1.0/modules/content/"
+  xmlns:media="http://search.yahoo.com/mrss/">
   <channel>
     <title>${escapeXml(meta.title)}</title>
     <link>${siteUrl}</link>
