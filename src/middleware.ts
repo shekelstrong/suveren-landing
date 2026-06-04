@@ -64,7 +64,10 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // Не-локализованный статический путь → редиректим на нужную локаль
+  // Не-локализованный статический путь → отдаём контент нужной локали
+  // через INTERNAL REWRITE (URL не меняется, sitemap видит 200 вместо 307).
+  // Раньше был NextResponse.redirect — это ломало sitemap, потому что
+  // Google Search Console считает 307-редирект «недействительным URL».
   if (shouldLocalize(pathname)) {
     const target = detectLocaleFromRequest(req);
     // Для ru и en ВСЕГДА добавляем префикс локали (иначе петля)
@@ -79,7 +82,8 @@ export function middleware(req: NextRequest) {
     const url = req.nextUrl.clone();
     url.pathname = newPath;
     url.search = search;
-    const res = NextResponse.redirect(url, 307);
+    // rewrite — клиент видит оригинальный URL, GSC видит 200
+    const res = NextResponse.rewrite(url);
     res.cookies.set("site-locale", target, {
       path: "/",
       maxAge: 60 * 60 * 24 * 365,
