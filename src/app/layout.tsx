@@ -166,6 +166,7 @@ export default function RootLayout({
       <head>
         <GscVerification />
         <YandexVerification />
+        <YandexMetrika />
       </head>
       <body className="antialiased">
         <script
@@ -183,7 +184,6 @@ export default function RootLayout({
         </Providers>
         <Analytics />
         <VercelAnalytics />
-        <YandexMetrika />
       </body>
     </html>
   );
