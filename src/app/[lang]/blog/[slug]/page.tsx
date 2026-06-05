@@ -17,7 +17,19 @@ import { FAQBlock } from "@/components/FAQBlock";
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL || "https://sovereign-semantics.vercel.app";
 
-export const dynamic = "force-dynamic";
+export async function generateStaticParams() {
+  const locales: Locale[] = ["ru", "en"];
+  const params: { lang: string; slug: string }[] = [];
+  
+  for (const locale of locales) {
+    const articles = await getAllArticles({ locale });
+    for (const article of articles) {
+      params.push({ lang: locale, slug: article.slug });
+    }
+  }
+  
+  return params;
+}
 
 export async function generateMetadata({
   params,
