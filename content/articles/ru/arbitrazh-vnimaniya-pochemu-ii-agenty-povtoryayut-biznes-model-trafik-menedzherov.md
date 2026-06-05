@@ -6,7 +6,10 @@ tags:
   - "it-ai"
   - "экономика"
   - "технологический-суверенитет"
-image: "/blog/arbitrazh-vnimaniya-cover.jpg"
+cta:
+  label: "Архитектура суверенных смыслов — Telegram"
+  href: "https://t.me/suveren_media"
+cover: "/blog/arbitrazh-vnimaniya-cover.jpg"
 readingTime: "9"
 ---
 
@@ -132,12 +135,6 @@ readingTime: "9"
 Агент — это инструмент. Он не имеет морали. Но **архитектура, в которую он встроен, определяет его функцию**. Архитектура арбитража рождает агентов-спекулянтов. Архитектура создания ценности рождает агентов-инженеров.
 
 Выбор — за нами. Пока мы не проснулись.
-
-### Призыв к действию
-
-Если ты читаешь это и понимаешь, что твоя работа — это тоже форма арбитража внимания, не вини себя. Вини систему. Но используй свою позицию для её изменения.
-
-Подписывайся на канал **«Архитектура суверенных смыслов»** — мы не продаём курсы по арбитражу. Мы анализируем архитектуру, которая рождает такие модели, и предлагаем альтернативы.
 
 [^1]: Statista, "Digital Advertising Worldwide — Statistics & Facts", 2025. https://www.statista.com/topics/1002/online-advertising/
 [^2]: MIT Media Lab, "The spread of low-credibility content by social bots", 2026. https://www.media.mit.edu/publications/

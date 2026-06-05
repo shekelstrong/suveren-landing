@@ -276,7 +276,7 @@ body {
   width: 100%;
 }
 
-/* === TABLES — Tactical Data Grids ===
+/* Tables
    Mobile: scrollable horizontally with fade-edge indicator.
    Desktop: fixed layout, sticky header on long tables, hover accent. */
 .prose-article table {
@@ -288,23 +288,29 @@ body {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-surface);
-  display: block;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  white-space: nowrap;
-  position: relative;
+  display: table;
+  table-layout: auto;
   min-width: 100%;
 }
 
-/* Mobile scroll fix: force children to keep real-table layout so cells stay aligned when scrolling horizontally.
-   Without this, thead/tbody/tr become block-level (cascade from display:block on table),
-   cells lose column alignment, and letters "slip" / "overlap" during horizontal scroll on phone. */
+/* Mobile: wrap table in scrollable container via overflow on prose-article */
+@media (max-width: 767px) {
+  .prose-article {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .prose-article table {
+    min-width: 640px;
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
+
 .prose-article table > thead,
 .prose-article table > tbody {
-  display: table;
+  display: table-header-group;
+  display: table-row-group;
   width: 100%;
-  min-width: 100%;
-  table-layout: auto;
 }
 .prose-article table > tr {
   display: table-row;
@@ -314,8 +320,8 @@ body {
   display: table-cell;
   white-space: normal;
   word-break: break-word;
-  min-width: 80px;
-  max-width: 100%;
+  min-width: 120px;
+  padding: 0.75rem 1rem;
 }
 
 /* Desktop: allow wider cells */
@@ -323,8 +329,8 @@ body {
   .prose-article table > th,
   .prose-article table > td {
     white-space: nowrap;
-    min-width: 110px;
-    max-width: 280px;
+    min-width: 140px;
+    max-width: 320px;
   }
 }
 
