@@ -90,9 +90,14 @@ export const metadata: Metadata = {
     creator: "@suveren_media",
   },
   icons: {
-    icon: "/icon",
+    icon: [
+      { url: "/favicon.png", sizes: "96x96", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon.ico", sizes: "48x48" },
+    ],
     shortcut: "/favicon.ico",
-    apple: "/icon",
+    apple: "/apple-touch-icon.png",
   },
 };
 

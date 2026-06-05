@@ -312,10 +312,20 @@ body {
 .prose-article table > th,
 .prose-article table > td {
   display: table-cell;
-  white-space: nowrap;
-  min-width: 110px;
-  max-width: 280px;
-  overflow-wrap: break-word;
+  white-space: normal;
+  word-break: break-word;
+  min-width: 80px;
+  max-width: 100%;
+}
+
+/* Desktop: allow wider cells */
+@media (min-width: 768px) {
+  .prose-article table > th,
+  .prose-article table > td {
+    white-space: nowrap;
+    min-width: 110px;
+    max-width: 280px;
+  }
 }
 
 /* Fade indicator on right edge when scrollable */
