@@ -142,6 +142,7 @@ function parseArticleFile(filename: string, locale: Locale): Article | null {
       cta: data.cta as Article["cta"],
       related: data.related as string[] | undefined,
       translations: data.translations as Article["translations"],
+      faq: data.faq as Article["faq"],
     };
   } catch (err) {
     console.error(`[articles] Failed to parse ${filename} (${locale}):`, err);
