@@ -22,17 +22,34 @@ export async function GET(req: Request) {
     }
   }
 
-  const articles = await getAllArticles({ includeDrafts: true });
-  return NextResponse.json({
-    count: articles.length,
-    articles: articles.map((a) => ({
-      slug: a.slug,
-      title: a.title,
-      description: a.description,
-      date: a.date,
-      tags: a.tags,
-      draft: a.draft,
-      readingTime: a.readingTime,
-    })),
-  });
+  try {
+    const articles = await getAllArticles({ includeDrafts: true });
+    return NextResponse.json({
+      count: articles.length,
+      articles: articles.map((a) => ({
+        slug: a.slug,
+        title: a.title,
+        description: a.description,
+        date: a.date,
+        tags: a.tags,
+        draft: a.draft,
+        readingTime: a.readingTime,
+      })),
+    });
+  } catch (err) {
+    // 2026-06-06: до этого блока не было — Vercel отдавал пустой 500, в
+    // админке был неотлаживаемый «HTTP 500». Теперь логируем и возвращаем
+    // внятное сообщение, чтобы было видно, что именно упало.
+    const message = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
+    const stack = err instanceof Error ? err.stack : undefined;
+    console.error("[articles-list] unhandled error:", message, stack);
+    return NextResponse.json(
+      {
+        error: "Internal error in /api/articles-list",
+        detail: message,
+        stack: process.env.NODE_ENV === "production" ? undefined : stack,
+      },
+      { status: 500 },
+    );
+  }
 }
