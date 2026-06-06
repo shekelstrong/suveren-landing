@@ -25,8 +25,9 @@ const jetbrains = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
 });
 
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://sovereign-semantics.vercel.app";
+const SITE_URL = (
+  process.env.NEXT_PUBLIC_SITE_URL || "https://sovereign-semantics.vercel.app"
+).replace(/\/$/, "");
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

@@ -2,8 +2,9 @@ import type { MetadataRoute } from "next";
 import { getAllArticles } from "@/lib/articles";
 import { routes } from "@/lib/routes";
 
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://sovereign-semantics.vercel.app";
+const SITE_URL = (
+  process.env.NEXT_PUBLIC_SITE_URL || "https://sovereign-semantics.vercel.app"
+).replace(/\/$/, "");
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [ruArticles, enArticles] = await Promise.all([
