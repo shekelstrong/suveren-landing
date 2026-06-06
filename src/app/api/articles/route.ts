@@ -1,9 +1,24 @@
 import { NextResponse } from "next/server";
 import { Octokit } from "@octokit/rest";
 import { slugifyTitle } from "@/lib/articles";
-import { generateCover, extractOrBuildPrompt } from "@/lib/image-gen";
+import {
+  generateCover,
+  extractOrBuildPrompt,
+  IMAGE_MODEL_FALLBACK_PUBLIC,
+} from "@/lib/image-gen";
 import { pingIndexNow } from "@/lib/indexnow";
 import { replicateToNemoDocs } from "@/lib/nemo-docs";
+
+/**
+ * Vercel Pro+ allows up to 300s per function invocation when `maxDuration` is set.
+ * Sourceful (primary image-gen) can take up to 220s for a single image, so we need
+ * the full 5 minutes for it to finish. On Hobby plan this setting is ignored and
+ * Vercel kills the function at the plan's default timeout (60s on Hobby in 2026)
+ * — in that case the image generation just falls back to gemini via 504 path.
+ *
+ * Связано со [[Secrets-Vault-2026-06-06#3-РЕШЕНО-позже-2026-06-06-OPENROUTER_IMAGE_MODEL]].
+ */
+export const maxDuration = 300;
 
 /**
  * POST /api/articles
@@ -63,18 +78,46 @@ async function generateCoverIfRequested(
   prompt: string,
   slug: string,
 ): Promise<string | null> {
-  // Только OpenRouter / Nano Banana 2
+  // OpenRouter required for both primary and fallback.
   if (!process.env.OPENROUTER_API_KEY) {
     console.warn(
       "[cover] OPENROUTER_API_KEY not set. Skipping cover generation.",
     );
     return null;
   }
+
+  // === Попытка 1: primary модель (по дефолту sourceful/riverflow-v2.5-pro:free).
+  // Может занять до 5 минут, поэтому outer Vercel timeout должен быть
+  // export const maxDuration = 300 (см. выше). Если sourceful упал/таймаут —
+  // пробуем fallback. Это покрывает 33% uptime sourceful в первые дни.
   try {
-    const result = await generateCover(prompt, slug);
-    return result.url;
+    const r = await generateCover(prompt, slug);
+    console.log(
+      `[cover] ✓ primary ${r.model} (${(r.bytes / 1024).toFixed(0)} KB, ${(r.durationMs / 1000).toFixed(1)}s)`,
+    );
+    return r.url;
   } catch (err) {
-    console.error("[cover] OpenRouter error:", err);
+    console.warn(
+      `[cover] primary failed, falling back to ${IMAGE_MODEL_FALLBACK_PUBLIC}:`,
+      err instanceof Error ? err.message : err,
+    );
+  }
+
+  // === Попытка 2: fallback модель (по дефолту google/gemini-3.1-flash-image-preview).
+  // Дешёвая, стабильная, ~6s. Если и она упала — статья публикуется без обложки.
+  try {
+    const r = await generateCover(prompt, slug, {
+      modelOverride: IMAGE_MODEL_FALLBACK_PUBLIC,
+    });
+    console.log(
+      `[cover] ✓ fallback ${r.model} (${(r.bytes / 1024).toFixed(0)} KB, ${(r.durationMs / 1000).toFixed(1)}s)`,
+    );
+    return r.url;
+  } catch (err) {
+    console.error(
+      "[cover] fallback also failed, publishing without cover:",
+      err instanceof Error ? err.message : err,
+    );
     return null;
   }
 }

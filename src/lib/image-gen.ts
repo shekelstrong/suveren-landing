@@ -18,9 +18,15 @@ const OPENROUTER_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
 // Sourceful НЕ принимает `modalities: ["image","text"]` — иначе 404. См. ниже.
 // Fallback на `google/gemini-3.1-flash-image-preview` (платный, $0.0000003/img, 6s, стабильный)
 // — там modalities обязательны. Переключение делается через env `OPENROUTER_IMAGE_MODEL`.
-// История фиксов: [[Secrets-Vault-2026-06-06#Известная-проблема-OPENROUTER_IMAGE_MODEL]].
+// История фиксов: [[Secrets-Vault-2026-06-06#3-РЕШЕНО-позже-2026-06-06-OPENROUTER_IMAGE_MODEL]].
 const IMAGE_MODEL =
   process.env.OPENROUTER_IMAGE_MODEL || "sourceful/riverflow-v2.5-pro:free";
+const IMAGE_MODEL_FALLBACK =
+  process.env.OPENROUTER_IMAGE_MODEL_FALLBACK ||
+  "google/gemini-3.1-flash-image-preview";
+const IMAGE_TIMEOUT_MS = Number(
+  process.env.OPENROUTER_IMAGE_TIMEOUT_MS || 300_000, // 5 минут — sourceful бывает медленным
+);
 const COVERS_DIR = path.join(process.cwd(), "public", "covers");
 
 interface OpenRouterImageResponse {
@@ -40,11 +46,21 @@ export interface CoverResult {
   mime: string;
   bytes: number;
   model: string;
+  /** время генерации в мс (от старта fetch до получения base64) */
+  durationMs: number;
+}
+
+interface GenerateCoverOptions {
+  /** Переопределить модель (по умолчанию — `IMAGE_MODEL` env). */
+  modelOverride?: string;
+  /** AbortSignal для отмены/таймаута (по умолчанию — AbortController с IMAGE_TIMEOUT_MS). */
+  signal?: AbortSignal;
 }
 
 export async function generateCover(
   prompt: string,
   slug: string,
+  options: GenerateCoverOptions = {},
 ): Promise<CoverResult> {
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
@@ -52,6 +68,8 @@ export async function generateCover(
       "OPENROUTER_API_KEY is not set. Add it in Vercel Environment Variables.",
     );
   }
+
+  const model = options.modelOverride ?? IMAGE_MODEL;
 
   // Усиливаем промпт стилистическим якорем проекта
   const enhancedPrompt = `${prompt}
@@ -62,9 +80,9 @@ Style: dark mode, emerald green and cold neon blue accents, hyperrealistic, 8k, 
   // `modalities` — отдаёт 404 "No endpoints found that support the requested output
   // modalities". Для всех остальных моделей (Gemini, GPT-Image и т.п.) modalities
   // обязательны. Подробнее: skill `openrouter-image-gen`.
-  const isSourceful = IMAGE_MODEL.startsWith("sourceful/");
+  const isSourceful = model.startsWith("sourceful/");
   const requestBody: Record<string, unknown> = {
-    model: IMAGE_MODEL,
+    model,
     messages: [
       {
         role: "user",
@@ -76,21 +94,42 @@ Style: dark mode, emerald green and cold neon blue accents, hyperrealistic, 8k, 
     requestBody.modalities = ["image", "text"];
   }
 
-  const response = await fetch(OPENROUTER_ENDPOINT, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-      "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL || "https://sovereign-semantics.vercel.app",
-      "X-Title": "Sovereign Semantics",
-    },
-    body: JSON.stringify(requestBody),
-  });
+  // Таймаут: если signal не передан, создаём свой с IMAGE_TIMEOUT_MS
+  // (5 минут по дефолту — sourceful бывает медленным, но не вечным).
+  const controller = new AbortController();
+  const timeoutId = setTimeout(
+    () => controller.abort(new Error(`timeout ${IMAGE_TIMEOUT_MS}ms`)),
+    IMAGE_TIMEOUT_MS,
+  );
+  const signal = options.signal ?? controller.signal;
+  // Если передан внешний signal, пробрасываем его abort
+  if (options.signal) {
+    if (options.signal.aborted) controller.abort(options.signal.reason);
+    else options.signal.addEventListener("abort", () => controller.abort(options.signal!.reason));
+  }
+
+  const t0 = Date.now();
+  let response: Response;
+  try {
+    response = await fetch(OPENROUTER_ENDPOINT, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL || "https://sovereign-semantics.vercel.app",
+        "X-Title": "Sovereign Semantics",
+      },
+      body: JSON.stringify(requestBody),
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!response.ok) {
     const errText = await response.text();
     throw new Error(
-      `OpenRouter API error ${response.status}: ${errText.slice(0, 300)}`,
+      `OpenRouter API error ${response.status} (model=${model}): ${errText.slice(0, 300)}`,
     );
   }
 
@@ -99,7 +138,7 @@ Style: dark mode, emerald green and cold neon blue accents, hyperrealistic, 8k, 
 
   if (!imageUrl) {
     throw new Error(
-      "No image in OpenRouter response. The model may have returned text only.",
+      `No image in OpenRouter response (model=${model}). The model may have returned text only.`,
     );
   }
 
@@ -124,9 +163,13 @@ Style: dark mode, emerald green and cold neon blue accents, hyperrealistic, 8k, 
     url: `/covers/${filename}`,
     mime,
     bytes: buffer.length,
-    model: IMAGE_MODEL,
+    model,
+    durationMs: Date.now() - t0,
   };
 }
+
+/** Запасная модель, используется автоматически при ошибке primary. */
+export const IMAGE_MODEL_FALLBACK_PUBLIC = IMAGE_MODEL_FALLBACK;
 
 /**
  * Извлекает IMAGE_PROMPT_FOR_AI из контента статьи (если автор сгенерировал
