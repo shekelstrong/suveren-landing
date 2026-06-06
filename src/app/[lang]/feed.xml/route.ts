@@ -1,9 +1,7 @@
 import { getAllArticles } from "@/lib/articles";
 import { buildRssXml } from "@/lib/rss";
 import type { Locale } from "@/lib/articles-types";
-
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://sovereign-semantics.vercel.app";
+import { siteUrl } from "@/lib/site";
 
 /**
  * /:lang/feed.xml — локализованный RSS-фид.
@@ -25,9 +23,9 @@ export async function GET(
   const articles = await getAllArticles({ locale, includeDrafts: false });
   const xml = buildRssXml({
     locale,
-    siteUrl: SITE_URL,
+    siteUrl: siteUrl(),
     articles,
-    selfUrl: `${SITE_URL}/rss.xml`,
+    selfUrl: siteUrl("/rss.xml"),
   });
 
   return new Response(xml, {

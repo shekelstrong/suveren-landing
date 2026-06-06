@@ -1,8 +1,6 @@
 import { getAllArticles } from "@/lib/articles";
 import { buildRssXml } from "@/lib/rss";
-
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://sovereign-semantics.vercel.app";
+import { siteUrl } from "@/lib/site";
 
 /**
  * /rss.xml — алиас для основного фида (стандартное место, которое ищут
@@ -17,9 +15,9 @@ export async function GET() {
   const articles = await getAllArticles({ locale: "ru", includeDrafts: false });
   const xml = buildRssXml({
     locale: "ru",
-    siteUrl: SITE_URL,
+    siteUrl: siteUrl(),
     articles,
-    selfUrl: `${SITE_URL}/rss.xml`,
+    selfUrl: siteUrl("/rss.xml"),
   });
 
   return new Response(xml, {

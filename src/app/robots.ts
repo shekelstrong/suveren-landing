@@ -1,8 +1,5 @@
 import type { MetadataRoute } from "next";
-
-const SITE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL || "https://sovereign-semantics.vercel.app"
-).replace(/\/$/, "");
+import { siteUrl } from "@/lib/site";
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -36,6 +33,6 @@ export default function robots(): MetadataRoute.Robots {
     ],
     // sitemap: достаточно. `host` убран — Google deprecated в 2023, оставление
     // может вызывать warning в Search Console.
-    sitemap: `${SITE_URL}/sitemap.xml`,
+    sitemap: `${siteUrl()}/sitemap.xml`,
   };
 }

@@ -1,10 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getAllArticles } from "@/lib/articles";
 import { routes } from "@/lib/routes";
-
-const SITE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL || "https://sovereign-semantics.vercel.app"
-).replace(/\/$/, "");
+import { siteUrl } from "@/lib/site";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [ruArticles, enArticles] = await Promise.all([
@@ -15,98 +12,98 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Статические страницы для обеих локалей
   const staticPages: MetadataRoute.Sitemap = [
     {
-      url: `${SITE_URL}${routes.home("ru")}`,
+      url: `${siteUrl()}${routes.home("ru")}`,
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 1.0,
       alternates: {
         languages: {
-          ru: `${SITE_URL}/`,
-          en: `${SITE_URL}/en`,
+          ru: `${siteUrl()}/`,
+          en: `${siteUrl()}/en`,
         },
       },
     },
     {
-      url: `${SITE_URL}${routes.home("en")}`,
+      url: `${siteUrl()}${routes.home("en")}`,
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 1.0,
       alternates: {
         languages: {
-          ru: `${SITE_URL}/`,
-          en: `${SITE_URL}/en`,
+          ru: `${siteUrl()}/`,
+          en: `${siteUrl()}/en`,
         },
       },
     },
     {
-      url: `${SITE_URL}${routes.blog("ru")}`,
+      url: `${siteUrl()}${routes.blog("ru")}`,
       lastModified: new Date(),
       changeFrequency: "daily",
       priority: 0.9,
       alternates: {
         languages: {
-          ru: `${SITE_URL}/blog`,
-          en: `${SITE_URL}/en/blog`,
+          ru: `${siteUrl()}/blog`,
+          en: `${siteUrl()}/en/blog`,
         },
       },
     },
     {
-      url: `${SITE_URL}${routes.blog("en")}`,
+      url: `${siteUrl()}${routes.blog("en")}`,
       lastModified: new Date(),
       changeFrequency: "daily",
       priority: 0.9,
       alternates: {
         languages: {
-          ru: `${SITE_URL}/blog`,
-          en: `${SITE_URL}/en/blog`,
+          ru: `${siteUrl()}/blog`,
+          en: `${siteUrl()}/en/blog`,
         },
       },
     },
     {
-      url: `${SITE_URL}${routes.manifesto("ru")}`,
+      url: `${siteUrl()}${routes.manifesto("ru")}`,
       lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.7,
       alternates: {
         languages: {
-          ru: `${SITE_URL}/manifesto`,
-          en: `${SITE_URL}/en/manifesto`,
+          ru: `${siteUrl()}/manifesto`,
+          en: `${siteUrl()}/en/manifesto`,
         },
       },
     },
     {
-      url: `${SITE_URL}${routes.manifesto("en")}`,
+      url: `${siteUrl()}${routes.manifesto("en")}`,
       lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.7,
       alternates: {
         languages: {
-          ru: `${SITE_URL}/manifesto`,
-          en: `${SITE_URL}/en/manifesto`,
+          ru: `${siteUrl()}/manifesto`,
+          en: `${siteUrl()}/en/manifesto`,
         },
       },
     },
     {
-      url: `${SITE_URL}${routes.contact("ru")}`,
+      url: `${siteUrl()}${routes.contact("ru")}`,
       lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.4,
       alternates: {
         languages: {
-          ru: `${SITE_URL}/contact`,
-          en: `${SITE_URL}/en/contact`,
+          ru: `${siteUrl()}/contact`,
+          en: `${siteUrl()}/en/contact`,
         },
       },
     },
     {
-      url: `${SITE_URL}${routes.contact("en")}`,
+      url: `${siteUrl()}${routes.contact("en")}`,
       lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.4,
       alternates: {
         languages: {
-          ru: `${SITE_URL}/contact`,
-          en: `${SITE_URL}/en/contact`,
+          ru: `${siteUrl()}/contact`,
+          en: `${siteUrl()}/en/contact`,
         },
       },
     },
@@ -119,14 +116,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       (e) => e.slug === article.slug || e.slug.startsWith(article.slug),
     );
     articlePages.push({
-      url: `${SITE_URL}${routes.blogPost(article.slug, "ru")}`,
+      url: `${siteUrl()}${routes.blogPost(article.slug, "ru")}`,
       lastModified: new Date(article.updated || article.date),
       changeFrequency: "monthly",
       priority: 0.8,
       alternates: {
         languages: {
-          ru: `${SITE_URL}/blog/${article.slug}`,
-          en: `${SITE_URL}/en/blog/${enVersion?.slug || article.slug}`,
+          ru: `${siteUrl()}/blog/${article.slug}`,
+          en: `${siteUrl()}/en/blog/${enVersion?.slug || article.slug}`,
         },
       },
     });
@@ -134,14 +131,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (const article of enArticles) {
     if (ruArticles.some((r) => r.slug === article.slug)) continue; // already added
     articlePages.push({
-      url: `${SITE_URL}${routes.blogPost(article.slug, "en")}`,
+      url: `${siteUrl()}${routes.blogPost(article.slug, "en")}`,
       lastModified: new Date(article.updated || article.date),
       changeFrequency: "monthly",
       priority: 0.8,
       alternates: {
         languages: {
-          ru: `${SITE_URL}/blog/${article.slug}`,
-          en: `${SITE_URL}/en/blog/${article.slug}`,
+          ru: `${siteUrl()}/blog/${article.slug}`,
+          en: `${siteUrl()}/en/blog/${article.slug}`,
         },
       },
     });

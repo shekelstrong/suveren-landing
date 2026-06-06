@@ -13,9 +13,7 @@ import { routes } from "@/lib/routes";
 import { isValidLocale } from "@/lib/dict";
 import { ArticleJsonLd } from "@/components/ArticleJsonLd";
 import { FAQBlock } from "@/components/FAQBlock";
-
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://sovereign-semantics.vercel.app";
+import { siteUrl } from "@/lib/site";
 
 export async function generateStaticParams() {
   const locales: Locale[] = ["ru", "en"];
@@ -45,7 +43,7 @@ export async function generateMetadata({
 
   const translation = await getArticleTranslation(article, locale === "ru" ? "en" : "ru");
   const isEn = locale === "en";
-  const canonical = isEn ? `${SITE_URL}/en/blog/${article.slug}` : `${SITE_URL}/blog/${article.slug}`;
+  const canonical = isEn ? siteUrl(`/en/blog/${article.slug}`) : siteUrl(`/blog/${article.slug}`);
 
   return {
     title: article.title,
@@ -55,8 +53,8 @@ export async function generateMetadata({
     alternates: {
       canonical,
       languages: {
-        ru: `${SITE_URL}/blog/${article.slug}`,
-        en: `${SITE_URL}/en/blog/${article.slug}`,
+        ru: siteUrl(`/blog/${article.slug}`),
+        en: siteUrl(`/en/blog/${article.slug}`),
       },
     },
     openGraph: {

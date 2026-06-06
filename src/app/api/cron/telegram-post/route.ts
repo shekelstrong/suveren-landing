@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAllArticles } from "@/lib/articles";
+import { siteUrl } from "@/lib/site";
 
 /**
  * Vercel Cron: раз в 30 мин fetch RSS → публикация новых статей в Telegram-канал.
@@ -60,7 +61,6 @@ export async function GET(req: NextRequest) {
 
   const token = process.env.TELEGRAM_BOT_TOKEN;
   const channel = process.env.TELEGRAM_CHANNEL || "@suveren_media";
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://sovereign-semantics.vercel.app";
 
   if (!token) {
     return NextResponse.json({ error: "TELEGRAM_BOT_TOKEN not set" }, { status: 500 });
@@ -85,7 +85,11 @@ export async function GET(req: NextRequest) {
     const key = `${article.locale}:${article.slug}`;
     if (posted.has(key)) continue;
 
-    const url = `${siteUrl}${article.locale === "en" ? "/en" : ""}/blog/${article.slug}`;
+    const url = siteUrl(
+      article.locale === "en"
+        ? `/en/blog/${article.slug}`
+        : `/blog/${article.slug}`,
+    );
 
     // Telegram message
     const tags = article.tags.map((t) => `#${t.replace(/\s+/g, "_")}`).join(" ");

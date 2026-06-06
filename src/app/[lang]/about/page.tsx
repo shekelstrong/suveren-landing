@@ -2,9 +2,7 @@ import type { Metadata } from "next";
 import { Mail, Send, Code2 } from "lucide-react";
 import { isValidLocale } from "@/lib/dict";
 import { routes } from "@/lib/routes";
-
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://sovereign-semantics.vercel.app";
+import { siteUrl } from "@/lib/site";
 
 export async function generateMetadata({
   params,
@@ -20,10 +18,10 @@ export async function generateMetadata({
       ? "About Architecture of Sovereign Meaning: methodology, editorial principles, contacts. E-E-A-T compliant."
       : "Об Архитектуре суверенных смыслов: методология, принципы редакции, контакты. Соответствует E-E-A-T.",
     alternates: {
-      canonical: isEn ? `${SITE_URL}/en/about` : `${SITE_URL}/about`,
+      canonical: isEn ? siteUrl("/en/about") : siteUrl("/about"),
       languages: {
-        ru: `${SITE_URL}/about`,
-        en: `${SITE_URL}/en/about`,
+        ru: siteUrl("/about"),
+        en: siteUrl("/en/about"),
       },
     },
   };
@@ -93,7 +91,7 @@ export default async function AboutPage({
   if (!isValidLocale(lang)) return null;
   const isEn = lang === "en";
   const t = dict[isEn ? "en" : "ru"];
-  const url = isEn ? `${SITE_URL}/en/about` : `${SITE_URL}/about`;
+  const url = isEn ? siteUrl("/en/about") : siteUrl("/about");
 
   // JSON-LD: AboutPage + Organization + Person (E-E-A-T)
   const jsonLd = {
@@ -106,21 +104,21 @@ export default async function AboutPage({
         name: t.title,
         description: t.subtitle,
         inLanguage: isEn ? "en-US" : "ru-RU",
-        isPartOf: { "@id": `${SITE_URL}/#website` },
+        isPartOf: { "@id": `${siteUrl()}/#website` },
       },
       {
         "@type": "Person",
-        "@id": `${SITE_URL}/about#author`,
+        "@id": `${siteUrl()}/about#author`,
         name: t.editorial.name,
         jobTitle: t.editorial.role,
         description: t.editorial.bio,
-        url: `${SITE_URL}/about`,
+        url: siteUrl("/about"),
         sameAs: [
           "https://github.com/shekelstrong",
           "https://t.me/suveren_media",
         ],
         email: "mailto:vasileneopekin@yandex.ru",
-        worksFor: { "@id": `${SITE_URL}/#organization` },
+        worksFor: { "@id": `${siteUrl()}/#organization` },
       },
     ],
   };

@@ -4,6 +4,7 @@ import type { Locale } from "@/lib/articles-types";
 import { getAllArticles, getAllTags } from "@/lib/articles";
 import { BlogExplorer } from "@/components/BlogExplorer";
 import { isValidLocale } from "@/lib/dict";
+import { siteUrl } from "@/lib/site";
 
 export async function generateStaticParams() {
   return [{ lang: "ru" }, { lang: "en" }];
@@ -16,27 +17,21 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { lang } = await params;
   const isEn = lang === "en";
-  const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://sovereign-semantics.vercel.app";
+  const canonical = isEn ? siteUrl("/en/blog") : siteUrl("/blog");
   return {
     title: isEn ? "Blog" : "Блог",
     description: isEn
-      ? "Analytical longreads on technological sovereignty, IT, AI and sober thinking. No fluff, no clichés."
+      ? "Long-form analytics on technological sovereignty, IT, AI, economics and a sober lifestyle."
       : "Аналитические лонгриды о технологическом суверенитете, IT, искусственном интеллекте, экономике и трезвом образе жизни.",
     alternates: {
-      canonical: isEn ? `${SITE}/en/blog` : `${SITE}/blog`,
+      canonical,
       languages: {
-        ru: `${SITE}/blog`,
-        en: `${SITE}/en/blog`,
+        ru: siteUrl("/blog"),
+        en: siteUrl("/en/blog"),
       },
     },
     openGraph: {
-      title: isEn ? "Blog · Architecture of Sovereign Meaning" : "Блог · Архитектура суверенных смыслов",
-      description: isEn
-        ? "Analytical longreads on sovereignty, IT, AI."
-        : "Аналитические лонгриды о суверенитете, IT, ИИ.",
-      type: "website",
-      url: isEn ? `${SITE}/en/blog` : `${SITE}/blog`,
-      locale: isEn ? "en_US" : "ru_RU",
+      url: canonical,
     },
   };
 }

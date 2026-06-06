@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useMemo } from "react";
+import { siteUrl } from "@/lib/site";
 
 /**
  * Генерирует JSON-LD BreadcrumbList динамически по текущему URL.
@@ -27,9 +28,6 @@ const LABELS: Record<"ru" | "en", Record<"blog" | "manifesto" | "contact", strin
   },
 };
 
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://sovereign-semantics.vercel.app";
-
 function buildBreadcrumbs(pathname: string) {
   // Убираем локальный префикс для парсинга, но сохраняем для ссылок
   const segments = pathname.split("/").filter(Boolean);
@@ -39,7 +37,7 @@ function buildBreadcrumbs(pathname: string) {
     ? segments.slice(1)
     : segments;
 
-  const baseUrl = isEn ? `${SITE_URL}/en` : `${SITE_URL}`;
+  const baseUrl = isEn ? siteUrl("/en") : siteUrl();
   const homeLabel = isEn ? "Home" : "Главная";
 
   // Старт: всегда Главная
@@ -65,8 +63,8 @@ function buildBreadcrumbs(pathname: string) {
       position,
       name,
       item: isEn
-        ? `${SITE_URL}${acc}`
-        : `${SITE_URL}${acc.replace(/^\/ru/, "") || ""}`,
+        ? siteUrl(acc)
+        : siteUrl(acc.replace(/^\/ru/, "") || ""),
     });
   });
 

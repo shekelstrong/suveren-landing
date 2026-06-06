@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAllArticles } from "@/lib/articles";
+import { siteUrl } from "@/lib/site";
 
 /**
  * Vercel Cron: раз в сутки (или вручную) — обновляет закреп-сообщение в канале
@@ -54,7 +55,6 @@ export async function GET(req: NextRequest) {
 
   const token = process.env.TELEGRAM_BOT_TOKEN;
   const channel = process.env.TELEGRAM_CHANNEL || "@suveren_media";
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://sovereign-semantics.vercel.app";
 
   if (!token) {
     return NextResponse.json({ error: "TELEGRAM_BOT_TOKEN not set" }, { status: 500 });
@@ -81,15 +81,19 @@ export async function GET(req: NextRequest) {
       const titleShort = a.title.length > 40 ? a.title.slice(0, 37) + "…" : a.title;
       row.push({
         text: `${titleShort} (${a.locale})`,
-        url: `${siteUrl}${a.locale === "en" ? "/en" : ""}/blog/${a.slug}`,
+        url: siteUrl(
+          a.locale === "en"
+            ? `/en/blog/${a.slug}`
+            : `/blog/${a.slug}`,
+        ),
       });
     }
     rows.push(row);
   }
 
   // Кнопка "Все статьи" в конце
-  rows.push([{ text: "📖 Все статьи", url: `${siteUrl}/blog` }]);
-  rows.push([{ text: "🌐 Сайт", url: siteUrl }]);
+  rows.push([{ text: "📖 Все статьи", url: siteUrl("/blog") }]);
+  rows.push([{ text: "🌐 Сайт", url: siteUrl() }]);
 
   const reply_markup = { inline_keyboard: rows };
 

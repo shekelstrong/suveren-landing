@@ -1,4 +1,5 @@
 import type { Article } from "@/lib/articles-types";
+import { siteUrl } from "@/lib/site";
 
 interface ArticleJsonLdProps {
   article: Article;
@@ -16,12 +17,10 @@ interface ArticleJsonLdProps {
  * - FAQPage (если есть faq[] в frontmatter) — отдельным блоком
  */
 export function ArticleJsonLd({ article, locale }: ArticleJsonLdProps) {
-  const SITE_URL =
-    process.env.NEXT_PUBLIC_SITE_URL || "https://sovereign-semantics.vercel.app";
   const isEn = locale === "en";
   const url = isEn
-    ? `${SITE_URL}/en/blog/${article.slug}`
-    : `${SITE_URL}/blog/${article.slug}`;
+    ? siteUrl(`/en/blog/${article.slug}`)
+    : siteUrl(`/blog/${article.slug}`);
   const authorName = article.authorBio?.name || article.author || (isEn ? "Editorial" : "Редакция");
 
   const articleLd = {
@@ -41,24 +40,24 @@ export function ArticleJsonLd({ article, locale }: ArticleJsonLdProps) {
     author: {
       "@type": "Person",
       name: authorName,
-      url: article.authorBio?.url || `${SITE_URL}/about`,
+      url: article.authorBio?.url || siteUrl("/about"),
       description: article.authorBio?.description,
     },
     publisher: {
       "@type": "Organization",
       name: isEn ? "Architecture of Sovereign Meaning" : "Архитектура суверенных смыслов",
       alternateName: "АСС",
-      url: SITE_URL,
+      url: siteUrl(),
       logo: {
         "@type": "ImageObject",
-        url: `${SITE_URL}/icon`,
+        url: siteUrl("/icon"),
         width: 512,
         height: 512,
       },
     },
     image: article.cover
-      ? [article.cover.startsWith("http") ? article.cover : `${SITE_URL}${article.cover}`]
-      : [`${SITE_URL}/opengraph-image`],
+      ? [article.cover.startsWith("http") ? article.cover : siteUrl(article.cover)]
+      : [siteUrl("/opengraph-image")],
     keywords: article.tags.join(", "),
     articleSection: article.tags[0] || "Analytics",
     wordCount: article.content?.split(/\s+/).filter(Boolean).length,

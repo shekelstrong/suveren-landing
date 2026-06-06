@@ -9,9 +9,7 @@ import { HeroGrid } from "@/components/HeroGrid";
 import { getDict, isValidLocale } from "@/lib/dict";
 import { routes } from "@/lib/routes";
 import { notFound } from "next/navigation";
-
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://sovereign-semantics.vercel.app";
+import { siteUrl } from "@/lib/site";
 
 export async function generateMetadata({
   params,
@@ -23,14 +21,14 @@ export async function generateMetadata({
   const home = isEn ? "/en" : "/";
   return {
     alternates: {
-      canonical: isEn ? `${SITE_URL}/en` : `${SITE_URL}/`,
+      canonical: isEn ? siteUrl("/en") : siteUrl(),
       languages: {
-        ru: `${SITE_URL}/`,
-        en: `${SITE_URL}/en`,
+        ru: siteUrl(),
+        en: siteUrl("/en"),
       },
     },
     openGraph: {
-      url: isEn ? `${SITE_URL}/en` : `${SITE_URL}/`,
+      url: isEn ? siteUrl("/en") : siteUrl(),
     },
   };
 }

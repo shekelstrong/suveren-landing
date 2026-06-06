@@ -6,8 +6,7 @@ import { isValidLocale } from "@/lib/dict";
 import { routes } from "@/lib/routes";
 import type { Locale as L } from "@/lib/articles-types";
 import { getDict } from "@/lib/dict";
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://sovereign-semantics.vercel.app";
+import { siteUrl } from "@/lib/site";
 
 export async function generateStaticParams() {
   return [{ lang: "ru" }, { lang: "en" }];
@@ -26,17 +25,19 @@ export async function generateMetadata({
       ? "Project philosophy: sober thinking, technological sovereignty, constructive patriotism, personal discipline."
       : "Философия проекта «Архитектура суверенных смыслов»: трезвое мышление, технологический суверенитет, конструктивный патриотизм, личная дисциплина.",
     alternates: {
-      canonical: isEn ? `${SITE_URL}/en/manifesto` : `${SITE_URL}/manifesto`,
+      canonical: isEn ? siteUrl("/en/manifesto") : siteUrl("/manifesto"),
       languages: {
-        ru: `${SITE_URL}/manifesto`,
-        en: `${SITE_URL}/en/manifesto`,
+        ru: siteUrl("/manifesto"),
+        en: siteUrl("/en/manifesto"),
       },
     },
     openGraph: {
       title: isEn ? "Manifesto · Architecture of Sovereign Meaning" : "Манифест · Архитектура суверенных смыслов",
-      description: isEn ? "Sober thinking. Technological sovereignty. Personal responsibility." : "Трезвое мышление. Технологический суверенитет. Личная ответственность.",
+      description: isEn
+        ? "Sober thinking. Technological sovereignty. Personal responsibility."
+        : "Трезвое мышление. Технологический суверенитет. Личная ответственность.",
       type: "website",
-      url: isEn ? `${SITE_URL}/en/manifesto` : `${SITE_URL}/manifesto`,
+      url: isEn ? siteUrl("/en/manifesto") : siteUrl("/manifesto"),
       locale: isEn ? "en_US" : "ru_RU",
     },
   };

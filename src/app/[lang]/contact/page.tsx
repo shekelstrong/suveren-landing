@@ -4,8 +4,7 @@ import { ContactForm } from "@/components/ContactForm";
 import { Send, Lock, Mail, Code2 } from "lucide-react";
 import { isValidLocale } from "@/lib/dict";
 import type { Locale } from "@/lib/articles-types";
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://sovereign-semantics.vercel.app";
+import { siteUrl } from "@/lib/site";
 
 export async function generateStaticParams() {
   return [{ lang: "ru" }, { lang: "en" }];
@@ -24,17 +23,19 @@ export async function generateMetadata({
       ? "Contact the editorial team: secure form, Telegram, email, GitHub. Partnerships, proposals, analytical requests."
       : "Связаться с редакцией АСС: защищённая форма, Telegram, email, GitHub. Партнёрства, предложения, аналитические запросы.",
     alternates: {
-      canonical: isEn ? `${SITE_URL}/en/contact` : `${SITE_URL}/contact`,
+      canonical: isEn ? siteUrl("/en/contact") : siteUrl("/contact"),
       languages: {
-        ru: `${SITE_URL}/contact`,
-        en: `${SITE_URL}/en/contact`,
+        ru: siteUrl("/contact"),
+        en: siteUrl("/en/contact"),
       },
     },
     openGraph: {
       title: isEn ? "Contact · Architecture of Sovereign Meaning" : "Контакты · Архитектура суверенных смыслов",
-      description: isEn ? "Secure communication with the editorial team." : "Защищённая связь с редакцией.",
+      description: isEn
+        ? "Secure communication with the editorial team."
+        : "Защищённая связь с редакцией.",
       type: "website",
-      url: isEn ? `${SITE_URL}/en/contact` : `${SITE_URL}/contact`,
+      url: isEn ? siteUrl("/en/contact") : siteUrl("/contact"),
       locale: isEn ? "en_US" : "ru_RU",
     },
   };

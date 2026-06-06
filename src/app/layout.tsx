@@ -25,12 +25,10 @@ const jetbrains = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
 });
 
-const SITE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL || "https://sovereign-semantics.vercel.app"
-).replace(/\/$/, "");
+import { siteUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
+  metadataBase: new URL(siteUrl()),
   title: {
     default: "Архитектура суверенных смыслов — аналитика, IT, ИИ",
     template: "%s · Архитектура суверенных смыслов",
@@ -78,7 +76,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "ru_RU",
     alternateLocale: "en_US",
-    url: SITE_URL,
+    url: siteUrl(),
     siteName: "Архитектура суверенных смыслов",
     title: "Архитектура суверенных смыслов — аналитика, IT, ИИ",
     description:
@@ -119,13 +117,13 @@ const jsonLd = {
   "@graph": [
     {
       "@type": "Organization",
-      "@id": `${SITE_URL}/#organization`,
+      "@id": `${siteUrl()}/#organization`,
       name: "Архитектура суверенных смыслов",
       alternateName: "Architecture of Sovereign Meaning",
-      url: SITE_URL,
+      url: siteUrl(),
       logo: {
         "@type": "ImageObject",
-        url: `${SITE_URL}/icon`,
+        url: siteUrl("/icon"),
       },
       sameAs: [
         "https://t.me/suveren_media",
@@ -141,15 +139,15 @@ const jsonLd = {
     },
     {
       "@type": "WebSite",
-      "@id": `${SITE_URL}/#website`,
-      url: SITE_URL,
+      "@id": `${siteUrl()}/#website`,
+      url: siteUrl(),
       name: "Архитектура суверенных смыслов",
       alternateName: "Architecture of Sovereign Meaning",
       inLanguage: ["ru-RU", "en-US"],
-      publisher: { "@id": `${SITE_URL}/#organization` },
+      publisher: { "@id": `${siteUrl()}/#organization` },
       potentialAction: {
         "@type": "SearchAction",
-        target: `${SITE_URL}/blog?q={search_term_string}`,
+        target: `${siteUrl()}/blog?q={search_term_string}`,
         "query-input": "required name=search_term_string",
       },
     },
